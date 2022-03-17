@@ -1,0 +1,18 @@
+<html>
+<head>
+<title>{{ title }}</title>
+</head>
+<body>
+Hello
+{{ name }}さん。
+学年{{ grade }}
+<input type="button" value="button" onclick="buttonClick()">
+</body>
+</html>
+<script>
+    function buttonClick(){
+        param = location.search
+        console.log(param)
+        location.href=('/line-auth'+param)
+    }
+</script>
