@@ -6,6 +6,11 @@
 LINE連携しました
 {{ name }}さん。
 学年{{ grade }}
+    <form action="/send-message-form" method="POST" enctype="multipart/form-data">
+        <input type="text" name="message">
+        <input type="text" name="token">
+        <input type="submit" value="送信">
+    </form>
 </body>
 </html>
 <script>
