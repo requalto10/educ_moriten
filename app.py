@@ -8,7 +8,9 @@ import json
 import random,string
 
 app = Flask(__name__)
-engine = create_engine('mysql+mysqlconnector://morise:testtest@localhost/educ_morise')
+
+engine = create_engine('mysql+mysqlconnector://keiten:test@localhost/educ_keiten')
+
 session = sessionmaker(bind=engine)()
 
 def randomname(n):
@@ -50,42 +52,47 @@ def hello():
         grade = result.grade 
     return render_template('hello.html', title='呼び出し側でタイトル設定', name=name, grade=grade)
 
-#ここから追加
 @app.route('/line-auth')
 def line_auth():
     req = request.args
     token = req.get("token")
     response_type = "code"
-    client_id = ""
-    redirect_uri = ""
+
+    client_id = "AJsQihReXBI6YXNi6ki4Ri"
+    redirect_uri = "http://localhost:8080/line-auth/callback"
     state = token
     scope = "notify"
-    url = ""
-    return redirect(url + "?response_type="+response_type+"&client_id="+client_id+"&redirect_uri="+redirect_uri+"&state="+state+"&scope="+scope)
+    url = "https://notify-bot.line.me/oauth/authorize"
+    return redirect(url + "?response_type=" + response_type + "&client_id=" + client_id + "&redirect_uri=" + redirect_uri+ "&state=" + str(state) + "&scope=" + scope)
+
 
 
 @app.route('/line-auth/callback')
 def line_callback():
     req = request.args
     code = req.get("code")
-    logging.error(code)
+    # logging.error(code)
     token = req.get("state")
     # logging.error(state)
 
-    url = ""
-    redirect_uri = ""
+    url = "https://notify-bot.line.me/oauth/token"
+    redirect_uri = "http://localhost:8080/line-auth/callback"
     headers = {"Content-Type":"application/x-www-form-urlencoded"}
     data ={
         "grant_type": "authorization_code",
         "code": code,
         "redirect_uri": redirect_uri ,
-        "client_id":"",
-        "client_secret":""
+        "client_id":"AJsQihReXBI6YXNi6ki4Ri",
+        "client_secret":"K7J3Egi78GAxPdXKORycPtFImrHRVBHLncFhzgFlbYV"
     }
     response = requests.post(url,headers = headers,data= data)
     line_token = json.loads(response.text)["access_token"]
+    logging.error(line_token)
 #tokenで識別されたユーザーのline_tokenカラムにline_tokenを入れてあげる
-    redirect_url = "/after-line-login?token="+token
+    t = text(f"update users set line_token = '{line_token}' where token = '{token}'")
+    session.execute(t)
+    session.commit()
+    redirect_url = "http://localhost:8080/after-line-login?token="+str(token)
     return redirect(redirect_url)
 
 @app.route('/after-line-login')
